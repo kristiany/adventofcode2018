@@ -1,9 +1,10 @@
 import os
 
+
+GOBLIN_POWER = 3
+
 with open('input.txt', 'r') as file:
     data = file.read()
-
-ATTACK_POWER = 3
 
 
 def world(input):
@@ -54,19 +55,20 @@ def enemies_in_range(c, order, map):
             not e['dead'] and unit_type(e, map) == enemy and adjacent_to((c['pos'][0], c['pos'][1]), e)]
 
 
-def attack(adjacents, map):
+def attack(adjacents, map, attack_power):
     order = sorted(adjacents, key=lambda k: (k['hp'], k['pos'][1], k['pos'][0]))
     weakest = order[0]
-    weakest['hp'] -= ATTACK_POWER
+    weakest['hp'] -= attack_power
     if weakest['hp'] <= 0:
         weakest['dead'] = True
         map[weakest['pos'][1]][weakest['pos'][0]] = '.'
 
 
-def attack_if_possible(c, order, map):
+def attack_if_possible(c, order, map, elf_power):
+    current_unit = unit_type(c, map)
     adjacents = enemies_in_range(c, order, map)
     if len(adjacents) > 0:
-        attack(adjacents, map)
+        attack(adjacents, map, elf_power if current_unit == 'E' else GOBLIN_POWER)
         return True
     return False
 
@@ -186,28 +188,39 @@ def fight_over(elves, goblins, full_rounds):
     return False
 
 
+def battle(elf_power, map, goblins, elves):
+    full_round = 0
+    while 1:
+        print("Starting round {}".format(full_round + 1))
+        living = [c for c in elves + goblins if not c['dead']]
+        order = sorted(living, key=lambda k: (k['pos'][1], k['pos'][0]))
+        for c in order:
+            if not c['dead']:
+                if fight_over(elves, goblins, full_round):
+                    break
+                if not attack_if_possible(c, order, map, elf_power):
+                    next_step = find_closest_path(c['pos'], unit_type(c, map), order, map)
+                    if next_step is not None:
+                        move(c, next_step, map)
+                        attack_if_possible(c, order, map, elf_power)
+        else:
+            full_round += 1
+            #os.system('clear')
+            #printm(map, [c for c in elves + goblins if not c['dead']])
+
+            continue
+        break
+    return [c for c in elves if not c['dead']]
+
+
 map, goblins, elves = world(data)
-
 printm(map, elves + goblins)
-
-full_round = 0
-while 1:
-    print("Starting round {}".format(full_round + 1))
-    living = [c for c in elves + goblins if not c['dead']]
-    order = sorted(living, key=lambda k: (k['pos'][1], k['pos'][0]))
-    for c in order:
-        if not c['dead']:
-            if fight_over(elves, goblins, full_round):
-                break
-            if not attack_if_possible(c, order, map):
-                next_step = find_closest_path(c['pos'], unit_type(c, map), order, map)
-                if next_step is not None:
-                    move(c, next_step, map)
-                    attack_if_possible(c, order, map)
-    else:
-        full_round += 1
-        #os.system('clear')
-        printm(map, [c for c in elves + goblins if not c['dead']])
-
-        continue
-    break
+number_of_elves = len(elves)
+elf_power = 3
+living_elves = battle(elf_power, map, goblins, elves)
+while number_of_elves != len(living_elves):
+    elf_power += 1
+    print("Elf attack power = {}".format(elf_power))
+    map, goblins, elves = world(data)
+    living_elves = battle(elf_power, map, goblins, elves)
+print("Part 2: attack power {} keeps all elves alive".format(elf_power))
