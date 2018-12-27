@@ -125,10 +125,14 @@ while y < size_y:
 
 
 print_map(map, min_x, size_x)
-count = 0
+reach = 0
+at_rest = 0
 for row in map:
     for x in range(size_x):
+        if row[x] == '~':
+            at_rest += 1
         if row[x] == '~' or row[x] == '|':
-            count += 1
+            reach += 1
 
-print("Part 1: {} tiles are reached".format(count))
+print("Part 1: {} tiles are reached".format(reach))
+print("Part 2: {} tiles will be at rest".format(at_rest))
