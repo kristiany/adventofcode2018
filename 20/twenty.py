@@ -132,6 +132,22 @@ print(current)
 print("Part 2: rooms with more than 1000 doors away {}".format(len(rooms)))
 
 
+import datetime
+
+def secondsToText(secs):
+    days = secs // 86400
+    hours = (secs - days * 86400) // 3600
+    minutes = (secs - days * 86400 - hours * 3600) // 60
+    seconds = secs - days * 86400 - hours * 3600 - minutes * 60
+    result = ("{} days, ".format(days) if days else "") + \
+             ("{} h, ".format(hours) if hours else "") + \
+             ("{} min, ".format(minutes) if minutes else "") + \
+             ("{} sec, ".format(seconds) if seconds else "")
+    return result
+
+delay = 2 * 60  # 3 min
+for i in range(2, 30):
+    print("{}: {}".format(i, secondsToText(int(delay * (2 ** (i - 2))))))
 
 
 
